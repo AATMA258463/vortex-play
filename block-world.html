@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Block World - VORTEX PLAY</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #dff3ff;
+  color: #17345b;
+}
+header {
+  background: white;
+  padding: 15px;
+}
+h1 { color: #1765c1; margin: 5px; }
+#tools { padding: 12px 5px; }
+button {
+  border: 0;
+  border-radius: 9px;
+  padding: 12px 15px;
+  margin: 4px;
+  background: #1765c1;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+button.active { background: #ed303c; }
+#world {
+  display: grid;
+  grid-template-columns: repeat(12, min(7vw, 38px));
+  grid-template-rows: repeat(10, min(7vw, 38px));
+  width: fit-content;
+  margin: 15px auto;
+  border: 4px solid #526b85;
+  background: #87ceeb;
+  touch-action: manipulation;
+}
+.block {
+  width: min(7vw, 38px);
+  height: min(7vw, 38px);
+  border: 1px solid #ffffff55;
+  cursor: pointer;
+}
+.grass { background: #45b649; }
+.dirt { background: #9b6338; }
+.stone { background: #888; }
+.empty { background: #87ceeb; }
+footer { padding: 15px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧱 BLOCK WORLD</h1>
+  <p>VORTEX PLAY</p>
+</header>
+
+<div id="tools">
+  <button class="active" onclick="choose('grass',this)">🟩 Grass</button>
+  <button onclick="choose('dirt',this)">🟫 Dirt</button>
+  <button onclick="choose('stone',this)">🪨 Stone</button>
+  <button onclick="choose('empty',this)">🧹 Eraser</button>
+  <button onclick="resetWorld()">Reset</button>
+</div>
+
+<p>Choose a block and tap any square to build!</p>
+
+<div id="world"></div>
+
+<footer>Made with ❤️ by VORTEX PLAY</footer>
+
+<script>
+const world = document.getElementById("world");
+let selected = "grass";
+let blocks = [];
+
+function choose(type, button) {
+  selected = type;
+  document.querySelectorAll("#tools button")
+    .forEach(b => b.classList.remove("active"));
+  button.classList.add("active");
+}
+
+function draw() {
+  world.innerHTML = "";
+
+  blocks.forEach((type, index) => {
+    const cell = document.createElement("div");
+    cell.className = "block " + type;
+
+    cell.addEventListener("click", () => {
+      blocks[index] = selected;
+      draw();
+    });
+
+    world.appendChild(cell);
+  });
+}
+
+function resetWorld() {
+  blocks = [];
+
+  for (let i = 0; i < 120; i++) {
+    const row = Math.floor(i / 12);
+    blocks.push(row === 7 ? "grass" :
+      row > 7 ? "dirt" : "empty");
+  }
+
+  draw();
+}
+
+resetWorld();
+</script>
+
+</body>
+</html>
