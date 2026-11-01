@@ -3,247 +3,234 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Block World - VORTEX PLAY</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VORTEX PLAY - Block World</title>
 <style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
-    background: #87ceeb;
-  }
-  #info {
-    position: fixed;
-    top: 12px;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    color: white;
-    text-shadow: 2px 2px 4px black;
-    z-index: 2;
-    pointer-events: none;
-  }
-  #start {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    padding: 16px 25px;
-    font-size: 18px;
-    background: #1765c1;
-    color: white;
-    border: 0;
-    border-radius: 10px;
-    z-index: 5;
-    cursor: pointer;
-  }
-  #help {
-    position: fixed;
-    bottom: 12px;
-    width: 100%;
-    text-align: center;
-    color: white;
-    text-shadow: 2px 2px 4px black;
-    pointer-events: none;
-  }
+*{box-sizing:border-box}
+body{margin:0;overflow:hidden;font-family:Arial;background:#87ceeb}
+#top{position:fixed;top:10px;width:100%;text-align:center;color:white;text-shadow:2px 2px 5px #222;pointer-events:none;z-index:2}
+#top h2{margin:5px}
+#start{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;padding:17px 30px;border:0;border-radius:12px;background:#1765c1;color:white;font-size:20px;font-weight:bold}
+#bar{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:3}
+.slot{width:54px;height:54px;border:3px solid #ddd;background:#222b;color:white;font-size:12px;border-radius:7px}
+.slot.active{border:4px solid yellow;background:#555}
+#help{position:fixed;bottom:82px;width:100%;text-align:center;color:white;text-shadow:2px 2px 4px black;font-size:13px;pointer-events:none}
+#cross{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:white;font-size:24px;text-shadow:1px 1px 3px black;pointer-events:none}
 </style>
 </head>
 <body>
-
-<div id="info">
-  <h2>🧱 BLOCK WORLD</h2>
-  <p>VORTEX PLAY</p>
-</div>
-
+<div id="top"><h2>🧱 BLOCK WORLD</h2><b>VORTEX PLAY</b></div>
 <button id="start">PLAY WORLD</button>
-
-<div id="help">
-  WASD: Move | SPACE: Jump | Left Click: Break | Right Click: Place
+<div id="cross">+</div>
+<div id="help">WASD: Move | SPACE: Jump | Left click: Break | Right click: Build | 1-4: Select block</div>
+<div id="bar">
+<button class="slot active" data-type="grass">1<br>🟩</button>
+<button class="slot" data-type="dirt">2<br>🟫</button>
+<button class="slot" data-type="stone">3<br>⬜</button>
+<button class="slot" data-type="wood">4<br>🪵</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-
 <script>
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb);
-scene.fog = new THREE.Fog(0x87ceeb, 15, 45);
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x87ceeb);
+scene.fog=new THREE.Fog(0x87ceeb,20,65);
 
-const camera = new THREE.PerspectiveCamera(
-  75, window.innerWidth / window.innerHeight, 0.1, 100
-);
-
-camera.position.set(0, 3, 7);
-
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,100);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0x668855, 2));
-
-const sun = new THREE.DirectionalLight(0xffffff, 2);
-sun.position.set(10, 20, 10);
+const skyLight=new THREE.HemisphereLight(0xbde7ff,0x52633c,1.5);
+scene.add(skyLight);
+const sun=new THREE.DirectionalLight(0xffffff,2);
+sun.position.set(15,25,10);
+sun.castShadow=true;
 scene.add(sun);
 
-const materials = {
-  grass: new THREE.MeshLambertMaterial({ color: 0x45ad42 }),
-  dirt: new THREE.MeshLambertMaterial({ color: 0x946037 }),
-  stone: new THREE.MeshLambertMaterial({ color: 0x888888 }),
-  wood: new THREE.MeshLambertMaterial({ color: 0x80502b }),
-  leaves: new THREE.MeshLambertMaterial({ color: 0x238b36 })
+const mats={
+ grass:new THREE.MeshLambertMaterial({color:0x50ad38}),
+ dirt:new THREE.MeshLambertMaterial({color:0x936037}),
+ stone:new THREE.MeshLambertMaterial({color:0x888888}),
+ wood:new THREE.MeshLambertMaterial({color:0x80502b}),
+ leaves:new THREE.MeshLambertMaterial({color:0x238b36}),
+ sand:new THREE.MeshLambertMaterial({color:0xd9c27a})
 };
+const geo=new THREE.BoxGeometry(1,1,1);
+const blocks=[];
+const worldMap=new Map();
+const mapKey=(x,y,z)=>`${x},${y},${z}`;
 
-const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
-const blocks = [];
-
-function addBlock(x, y, z, type) {
-  const block = new THREE.Mesh(cubeGeometry, materials[type]);
-  block.position.set(x, y, z);
-  block.userData.type = type;
-  scene.add(block);
-  blocks.push(block);
+function addBlock(x,y,z,type){
+ const key=mapKey(x,y,z);
+ if(worldMap.has(key))return;
+ const m=new THREE.Mesh(geo,mats[type]||mats.grass);
+ m.position.set(x,y,z);
+ m.castShadow=true;
+ m.receiveShadow=true;
+ m.userData.type=type;
+ scene.add(m);
+ blocks.push(m);
+ worldMap.set(key,m);
+}
+function removeBlock(m){
+ scene.remove(m);
+ blocks.splice(blocks.indexOf(m),1);
+ worldMap.delete(mapKey(m.position.x,m.position.y,m.position.z));
 }
 
-for (let x = -10; x <= 10; x++) {
-  for (let z = -10; z <= 10; z++) {
-    addBlock(x, 0, z, "grass");
-    addBlock(x, -1, z, "dirt");
+// Rolling hills
+function heightAt(x,z){
+ return Math.floor(1.5+Math.sin(x*.35)*1.2+Math.cos(z*.3)*1.1);
+}
+for(let x=-22;x<=22;x++){
+ for(let z=-22;z<=22;z++){
+  const h=heightAt(x,z);
+  for(let y=-2;y<=h;y++){
+   addBlock(x,y,z,y===h?(h<=0?"sand":"grass"):y<h-2?"stone":"dirt");
   }
+ }
 }
 
 // Trees
-function makeTree(x, z) {
-  for (let y = 1; y <= 3; y++) {
-    addBlock(x, y, z, "wood");
+function tree(x,z){
+ const h=heightAt(x,z);
+ for(let y=1;y<=4;y++)addBlock(x,h+y,z,"wood");
+ for(let dx=-2;dx<=2;dx++){
+  for(let dz=-2;dz<=2;dz++){
+   for(let dy=3;dy<=5;dy++){
+    if(Math.abs(dx)+Math.abs(dz)+(dy===5?1:0)<=4)
+     addBlock(x+dx,h+dy,z+dz,"leaves");
+   }
   }
-  for (let dx = -1; dx <= 1; dx++) {
-    for (let dz = -1; dz <= 1; dz++) {
-      for (let y = 3; y <= 4; y++) {
-        addBlock(x + dx, y, z + dz, "leaves");
-      }
-    }
-  }
+ }
+}
+[[-8,-7],[8,-9],[-12,8],[12,7],[0,-13],[-16,-2],[17,1],[3,14]].forEach(p=>tree(p[0],p[1]));
+
+// Distant mountain shapes
+const mountainMat=new THREE.MeshLambertMaterial({color:0x71818d});
+for(let i=0;i<12;i++){
+ const mountain=new THREE.Mesh(
+  new THREE.ConeGeometry(3+Math.random()*3,7+Math.random()*7,5),
+  mountainMat
+ );
+ mountain.position.set(-25+i*5,3,-28);
+ scene.add(mountain);
 }
 
-makeTree(-5, -4);
-makeTree(5, -5);
-makeTree(-6, 5);
-makeTree(6, 5);
+// Stars
+const starGeo=new THREE.BufferGeometry();
+const starPositions=[];
+for(let i=0;i<250;i++){
+ starPositions.push((Math.random()-.5)*100,15+Math.random()*35,(Math.random()-.5)*100);
+}
+starGeo.setAttribute("position",new THREE.Float32BufferAttribute(starPositions,3));
+const stars=new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xffffff,size:.25}));
+scene.add(stars);
 
 // Player
-const player = new THREE.Object3D();
-player.position.set(0, 1.7, 5);
+const player=new THREE.Object3D();
+player.position.set(0,heightAt(0,5)+2,5);
 scene.add(player);
 player.add(camera);
+let yaw=0,pitch=0,vy=0,grounded=false;
+const keys={};
+let selected="grass";
+let day=0;
 
-let yaw = 0;
-let pitch = 0;
-let verticalSpeed = 0;
-let grounded = true;
-const keys = {};
+document.addEventListener("keydown",e=>{
+ keys[e.code]=true;
+ if(e.code.startsWith("Digit")){
+  const slot=document.querySelectorAll(".slot")[Number(e.code.slice(5))-1];
+  if(slot)slot.click();
+ }
+ if(e.code==="Space"&&grounded){vy=.18;grounded=false;}
+});
+document.addEventListener("keyup",e=>keys[e.code]=false);
 
-document.addEventListener("keydown", e => {
-  keys[e.code] = true;
-  if (e.code === "Space" && grounded) {
-    verticalSpeed = 0.16;
-    grounded = false;
-  }
+document.querySelectorAll(".slot").forEach(slot=>{
+ slot.onclick=()=>{
+  selected=slot.dataset.type;
+  document.querySelectorAll(".slot").forEach(s=>s.classList.remove("active"));
+  slot.classList.add("active");
+ };
 });
 
-document.addEventListener("keyup", e => {
-  keys[e.code] = false;
-});
-
-document.addEventListener("mousemove", e => {
-  if (document.pointerLockElement === renderer.domElement) {
-    yaw -= e.movementX * 0.002;
-    pitch -= e.movementY * 0.002;
-    pitch = Math.max(-1.4, Math.min(1.4, pitch));
-    player.rotation.y = yaw;
-    camera.rotation.x = pitch;
-  }
-});
-
-document.getElementById("start").onclick = () => {
-  renderer.domElement.requestPointerLock();
-  document.getElementById("start").style.display = "none";
+document.getElementById("start").onclick=()=>{
+ renderer.domElement.requestPointerLock();
 };
-
-document.addEventListener("pointerlockchange", () => {
-  if (document.pointerLockElement !== renderer.domElement) {
-    document.getElementById("start").style.display = "block";
-  }
+document.addEventListener("pointerlockchange",()=>{
+ document.getElementById("start").style.display=
+ document.pointerLockElement===renderer.domElement?"none":"block";
+});
+document.addEventListener("mousemove",e=>{
+ if(document.pointerLockElement!==renderer.domElement)return;
+ yaw-=e.movementX*.002;
+ pitch-=e.movementY*.002;
+ pitch=Math.max(-1.4,Math.min(1.4,pitch));
+ player.rotation.y=yaw;
+ camera.rotation.x=pitch;
 });
 
-const raycaster = new THREE.Raycaster();
-const center = new THREE.Vector2(0, 0);
-
-renderer.domElement.addEventListener("contextmenu", e => e.preventDefault());
-
-renderer.domElement.addEventListener("mousedown", e => {
-  if (document.pointerLockElement !== renderer.domElement) return;
-
-  raycaster.setFromCamera(center, camera);
-  const hits = raycaster.intersectObjects(blocks);
-
-  if (!hits.length || hits[0].distance > 6) return;
-
-  const hit = hits[0];
-
-  if (e.button === 0) {
-    scene.remove(hit.object);
-    blocks.splice(blocks.indexOf(hit.object), 1);
-  }
-
-  if (e.button === 2) {
-    const position = hit.object.position.clone()
-      .add(hit.face.normal);
-    addBlock(
-      Math.round(position.x),
-      Math.round(position.y),
-      Math.round(position.z),
-      "grass"
-    );
-  }
+renderer.domElement.addEventListener("contextmenu",e=>e.preventDefault());
+const ray=new THREE.Raycaster();
+renderer.domElement.addEventListener("mousedown",e=>{
+ if(document.pointerLockElement!==renderer.domElement)return;
+ ray.setFromCamera(new THREE.Vector2(0,0),camera);
+ const hits=ray.intersectObjects(blocks);
+ if(!hits.length||hits[0].distance>6)return;
+ const hit=hits[0];
+ if(e.button===0)removeBlock(hit.object);
+ if(e.button===2){
+  const p=hit.object.position.clone().add(hit.face.normal);
+  addBlock(Math.round(p.x),Math.round(p.y),Math.round(p.z),selected);
+ }
 });
 
-function animate() {
-  requestAnimationFrame(animate);
+function animate(){
+ requestAnimationFrame(animate);
 
-  const speed = 0.09;
-  const forward = new THREE.Vector3(
-    -Math.sin(yaw), 0, -Math.cos(yaw)
-  );
-  const right = new THREE.Vector3(
-    Math.cos(yaw), 0, -Math.sin(yaw)
-  );
+ // Smooth day and night cycle
+ day+=.00012;
+ const sunHeight=Math.sin(day);
+ const daylight=Math.max(.12,(sunHeight+1)/2);
+ const skyColor=new THREE.Color().setHSL(.55,.55,.12+daylight*.42);
+ scene.background.copy(skyColor);
+ scene.fog.color.copy(skyColor);
+ sun.intensity=.15+daylight*2.2;
+ skyLight.intensity=.35+daylight*1.3;
+ sun.position.set(Math.cos(day)*30,sunHeight*35,10);
+ stars.visible=daylight<.28;
 
-  if (keys["KeyW"]) player.position.addScaledVector(forward, speed);
-  if (keys["KeyS"]) player.position.addScaledVector(forward, -speed);
-  if (keys["KeyA"]) player.position.addScaledVector(right, -speed);
-  if (keys["KeyD"]) player.position.addScaledVector(right, speed);
+ // Movement
+ const speed=.105;
+ const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+ const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+ if(keys.KeyW)player.position.addScaledVector(forward,speed);
+ if(keys.KeyS)player.position.addScaledVector(forward,-speed);
+ if(keys.KeyA)player.position.addScaledVector(right,-speed);
+ if(keys.KeyD)player.position.addScaledVector(right,speed);
 
-  player.position.x = THREE.MathUtils.clamp(player.position.x, -10, 10);
-  player.position.z = THREE.MathUtils.clamp(player.position.z, -10, 10);
+ player.position.x=THREE.MathUtils.clamp(player.position.x,-21,21);
+ player.position.z=THREE.MathUtils.clamp(player.position.z,-21,21);
 
-  verticalSpeed -= 0.006;
-  player.position.y += verticalSpeed;
-
-  if (player.position.y <= 1.7) {
-    player.position.y = 1.7;
-    verticalSpeed = 0;
-    grounded = true;
-  }
-
-  renderer.render(scene, camera);
+ vy-=.007;
+ player.position.y+=vy;
+ const ground=heightAt(Math.round(player.position.x),Math.round(player.position.z))+1.7;
+ if(player.position.y<=ground){
+  player.position.y=ground;vy=0;grounded=true;
+ }
+ renderer.render(scene,camera);
 }
-
 animate();
 
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+window.addEventListener("resize",()=>{
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(innerWidth,innerHeight);
 });
 </script>
 </body>
