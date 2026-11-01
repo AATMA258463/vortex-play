@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VORTEX PLAY | Gaming Hub</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f8ff;
+  color: #17264a;
+}
+header {
+  background: white;
+  padding: 18px 8%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 12px #0001;
+}
+.logo { font-size: 25px; font-weight: 900; color: #1765c1; }
+.logo span { color: #ed303c; }
+nav a {
+  color: #17264a;
+  text-decoration: none;
+  margin-left: 20px;
+  font-weight: bold;
+}
+.hero {
+  text-align: center;
+  padding: 85px 20px;
+  background: linear-gradient(135deg,#e6efff,#fff);
+}
+.hero h1 { font-size: 48px; margin: 0 0 15px; }
+.hero h1 span { color: #ed303c; }
+.hero p { font-size: 18px; color: #586780; }
+.games { padding: 45px 8%; text-align: center; }
+.games h2 { font-size: 32px; }
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+  gap: 22px;
+  margin-top: 30px;
+}
+.card {
+  background: white;
+  padding: 28px 18px;
+  border-radius: 16px;
+  box-shadow: 0 5px 20px #18315b12;
+}
+.card .emoji { font-size: 55px; }
+.card h3 { margin-bottom: 8px; }
+.card p { color: #68758b; }
+.card button {
+  background: #1765c1;
+  color: white;
+  border: 0;
+  padding: 12px 25px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+}
+footer {
+  text-align: center;
+  padding: 25px;
+  background: white;
+  color: #68758b;
+}
+@media(max-width:600px) {
+  header { flex-direction: column; gap: 14px; }
+  nav a { margin: 0 8px; }
+  .hero h1 { font-size: 36px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">VORTEX <span>PLAY</span></div>
+  <nav>
+    <a href="#home">Home</a>
+    <a href="#games">Games</a>
+  </nav>
+</header>
+
+<section class="hero" id="home">
+  <h1>WELCOME TO <span>VORTEX PLAY</span></h1>
+  <p>Discover new worlds. Play amazing games. Have fun!</p>
+</section>
+
+<section class="games" id="games">
+  <h2>OUR GAMES</h2>
+  <div class="cards">
+    <div class="card">
+      <div class="emoji">🧱</div>
+      <h3>Block World</h3>
+      <p>Explore a world of blocks.</p>
+      <button>Coming Soon</button>
+    </div>
+    <div class="card">
+      <div class="emoji">🏆</div>
+      <h3>Survival Arena</h3>
+      <p>Enter the survival challenge.</p>
+      <button>Coming Soon</button>
+    </div>
+    <div class="card">
+      <div class="emoji">🏎️</div>
+      <h3>Neon City Racing</h3>
+      <p>Race through the future city.</p>
+      <button>Coming Soon</button>
+    </div>
+  </div>
+</section>
+
+<footer>© 2026 VORTEX PLAY. All rights reserved.</footer>
+</body>
+</html>
