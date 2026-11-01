@@ -3,18 +3,18 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VORTEX PLAY - Block World</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;overflow:hidden;font-family:Arial;background:#87ceeb}
-#top{position:fixed;top:10px;width:100%;text-align:center;color:white;text-shadow:2px 2px 5px #222;pointer-events:none;z-index:2}
+body{margin:0;overflow:hidden;font-family:Arial;background:#80c9f5}
+#top{position:fixed;top:8px;width:100%;text-align:center;color:white;text-shadow:2px 2px 5px #222;pointer-events:none;z-index:2}
 #top h2{margin:5px}
-#start{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;padding:17px 30px;border:0;border-radius:12px;background:#1765c1;color:white;font-size:20px;font-weight:bold}
-#bar{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:3}
-.slot{width:54px;height:54px;border:3px solid #ddd;background:#222b;color:white;font-size:12px;border-radius:7px}
+#start{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);padding:17px 30px;border:0;border-radius:12px;background:#1765c1;color:white;font-size:20px;font-weight:bold;z-index:5}
+#bar{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:3}
+.slot{width:55px;height:55px;border:3px solid #ddd;background:#222b;color:white;border-radius:7px;font-size:12px}
 .slot.active{border:4px solid yellow;background:#555}
-#help{position:fixed;bottom:82px;width:100%;text-align:center;color:white;text-shadow:2px 2px 4px black;font-size:13px;pointer-events:none}
+#help{position:fixed;bottom:78px;width:100%;text-align:center;color:white;text-shadow:2px 2px 4px black;font-size:12px;pointer-events:none}
 #cross{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:white;font-size:24px;text-shadow:1px 1px 3px black;pointer-events:none}
 </style>
 </head>
@@ -22,7 +22,7 @@ body{margin:0;overflow:hidden;font-family:Arial;background:#87ceeb}
 <div id="top"><h2>🧱 BLOCK WORLD</h2><b>VORTEX PLAY</b></div>
 <button id="start">PLAY WORLD</button>
 <div id="cross">+</div>
-<div id="help">WASD: Move | SPACE: Jump | Left click: Break | Right click: Build | 1-4: Select block</div>
+<div id="help">WASD: Move | SPACE: Jump | Left click: Break | Right click: Build | 1-4: Select</div>
 <div id="bar">
 <button class="slot active" data-type="grass">1<br>🟩</button>
 <button class="slot" data-type="dirt">2<br>🟫</button>
@@ -34,69 +34,98 @@ body{margin:0;overflow:hidden;font-family:Arial;background:#87ceeb}
 <script>
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x87ceeb);
-scene.fog=new THREE.Fog(0x87ceeb,20,65);
+scene.fog=new THREE.Fog(0x87ceeb,25,75);
 
-const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,100);
+const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,120);
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
-const skyLight=new THREE.HemisphereLight(0xbde7ff,0x52633c,1.5);
-scene.add(skyLight);
+const hemi=new THREE.HemisphereLight(0xc8eaff,0x596b3d,1.5);
+scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xffffff,2);
-sun.position.set(15,25,10);
+sun.position.set(15,30,10);
 sun.castShadow=true;
+sun.shadow.mapSize.set(1024,1024);
 scene.add(sun);
 
+function texture(base,detail,seed){
+ const c=document.createElement("canvas");
+ c.width=c.height=128;
+ const ctx=c.getContext("2d");
+ ctx.fillStyle=base;ctx.fillRect(0,0,128,128);
+ let n=seed;
+ for(let i=0;i<500;i++){
+  n=(n*9301+49297)%233280;
+  const x=(n/233280)*128;
+  n=(n*9301+49297)%233280;
+  const y=(n/233280)*128;
+  const size=2+(n%7);
+  ctx.globalAlpha=.18+(n%30)/100;
+  ctx.fillStyle=detail;
+  ctx.fillRect(x,y,size,size);
+ }
+ ctx.globalAlpha=1;
+ const t=new THREE.CanvasTexture(c);
+ t.colorSpace=THREE.SRGBColorSpace;
+ t.magFilter=THREE.NearestFilter;
+ t.minFilter=THREE.NearestMipmapNearestFilter;
+ return t;
+}
+function material(base,detail,seed){
+ return new THREE.MeshLambertMaterial({map:texture(base,detail,seed)});
+}
 const mats={
- grass:new THREE.MeshLambertMaterial({color:0x50ad38}),
- dirt:new THREE.MeshLambertMaterial({color:0x936037}),
- stone:new THREE.MeshLambertMaterial({color:0x888888}),
- wood:new THREE.MeshLambertMaterial({color:0x80502b}),
- leaves:new THREE.MeshLambertMaterial({color:0x238b36}),
- sand:new THREE.MeshLambertMaterial({color:0xd9c27a})
+ grass:material("#55a83a","#b2d77a",4),
+ dirt:material("#88552f","#b47a45",7),
+ stone:material("#858585","#c2c2c2",9),
+ wood:material("#80502b","#c18a4b",12),
+ leaves:material("#238b36","#68c34a",15),
+ sand:material("#d7c17b","#fff0b0",18)
 };
-const geo=new THREE.BoxGeometry(1,1,1);
+const cube=new THREE.BoxGeometry(1,1,1);
 const blocks=[];
-const worldMap=new Map();
-const mapKey=(x,y,z)=>`${x},${y},${z}`;
+const blockMap=new Map();
+const key=(x,y,z)=>`${x},${y},${z}`;
 
 function addBlock(x,y,z,type){
- const key=mapKey(x,y,z);
- if(worldMap.has(key))return;
- const m=new THREE.Mesh(geo,mats[type]||mats.grass);
+ const k=key(x,y,z);
+ if(blockMap.has(k))return;
+ const m=new THREE.Mesh(cube,mats[type]||mats.grass);
  m.position.set(x,y,z);
  m.castShadow=true;
  m.receiveShadow=true;
  m.userData.type=type;
  scene.add(m);
  blocks.push(m);
- worldMap.set(key,m);
+ blockMap.set(k,m);
 }
 function removeBlock(m){
  scene.remove(m);
  blocks.splice(blocks.indexOf(m),1);
- worldMap.delete(mapKey(m.position.x,m.position.y,m.position.z));
+ blockMap.delete(key(m.position.x,m.position.y,m.position.z));
+}
+function heightAt(x,z){
+ return Math.floor(1+Math.sin(x*.28)*1.3+Math.cos(z*.25)*1.1);
 }
 
-// Rolling hills
-function heightAt(x,z){
- return Math.floor(1.5+Math.sin(x*.35)*1.2+Math.cos(z*.3)*1.1);
-}
+// Hills and ground
 for(let x=-22;x<=22;x++){
  for(let z=-22;z<=22;z++){
   const h=heightAt(x,z);
-  for(let y=-2;y<=h;y++){
-   addBlock(x,y,z,y===h?(h<=0?"sand":"grass"):y<h-2?"stone":"dirt");
+  for(let y=-3;y<=h;y++){
+   let type=y===h?(h<=0?"sand":"grass"):(y<h-2?"stone":"dirt");
+   addBlock(x,y,z,type);
   }
  }
 }
 
 // Trees
-function tree(x,z){
+function makeTree(x,z){
  const h=heightAt(x,z);
  for(let y=1;y<=4;y++)addBlock(x,h+y,z,"wood");
  for(let dx=-2;dx<=2;dx++){
@@ -108,27 +137,76 @@ function tree(x,z){
   }
  }
 }
-[[-8,-7],[8,-9],[-12,8],[12,7],[0,-13],[-16,-2],[17,1],[3,14]].forEach(p=>tree(p[0],p[1]));
+[[-8,-7],[8,-9],[-12,8],[12,7],[0,-13],[-16,-2],[17,1],[3,14],[-3,18]].forEach(p=>makeTree(...p));
 
-// Distant mountain shapes
-const mountainMat=new THREE.MeshLambertMaterial({color:0x71818d});
-for(let i=0;i<12;i++){
- const mountain=new THREE.Mesh(
-  new THREE.ConeGeometry(3+Math.random()*3,7+Math.random()*7,5),
-  mountainMat
- );
- mountain.position.set(-25+i*5,3,-28);
- scene.add(mountain);
+// Water lake
+const waterMat=new THREE.MeshPhongMaterial({
+ color:0x168ed0,transparent:true,opacity:.78,
+ shininess:100
+});
+const water=new THREE.Mesh(new THREE.PlaneGeometry(10,9),waterMat);
+water.rotation.x=-Math.PI/2;
+water.position.set(0,.18,-3);
+scene.add(water);
+
+// Clouds
+const clouds=[];
+const cloudMat=new THREE.MeshLambertMaterial({color:0xffffff});
+for(let i=0;i<9;i++){
+ const group=new THREE.Group();
+ for(let j=0;j<5;j++){
+  const puff=new THREE.Mesh(new THREE.BoxGeometry(2,1,2),cloudMat);
+  puff.position.set((j-2)*1.2,Math.random()*.5,Math.sin(j)*.7);
+  group.add(puff);
+ }
+ group.position.set(-25+Math.random()*50,13+Math.random()*5,-20+Math.random()*35);
+ scene.add(group);
+ clouds.push(group);
+}
+
+// Simple blocky animals
+const animals=[];
+const animalMats=[
+ new THREE.MeshLambertMaterial({color:0xe8e0cc}),
+ new THREE.MeshLambertMaterial({color:0x8b5936}),
+ new THREE.MeshLambertMaterial({color:0x333333})
+];
+function makeAnimal(x,z,index){
+ const group=new THREE.Group();
+ const body=new THREE.Mesh(new THREE.BoxGeometry(1.3,.8,.65),animalMats[index]);
+ body.position.y=.85;group.add(body);
+ const head=new THREE.Mesh(new THREE.BoxGeometry(.55,.55,.55),animalMats[index]);
+ head.position.set(.75,1.05,0);group.add(head);
+ for(let a of [-.4,.4]){
+  for(let b of [-.2,.2]){
+   const leg=new THREE.Mesh(new THREE.BoxGeometry(.18,.6,.18),animalMats[index]);
+   leg.position.set(a,.3,b);group.add(leg);
+  }
+ }
+ group.position.set(x,heightAt(x,z)+.1,z);
+ scene.add(group);
+ animals.push({group,x,z,phase:Math.random()*6});
+}
+makeAnimal(-4,2,0);
+makeAnimal(5,3,1);
+makeAnimal(10,-2,2);
+
+// Mountains in distance
+const mountainMat=new THREE.MeshLambertMaterial({color:0x788b99});
+for(let i=0;i<13;i++){
+ const m=new THREE.Mesh(new THREE.ConeGeometry(4,10,5),mountainMat);
+ m.position.set(-30+i*5,4,-30);
+ scene.add(m);
 }
 
 // Stars
-const starGeo=new THREE.BufferGeometry();
-const starPositions=[];
+const starGeometry=new THREE.BufferGeometry();
+const positions=[];
 for(let i=0;i<250;i++){
- starPositions.push((Math.random()-.5)*100,15+Math.random()*35,(Math.random()-.5)*100);
+ positions.push((Math.random()-.5)*100,15+Math.random()*35,(Math.random()-.5)*100);
 }
-starGeo.setAttribute("position",new THREE.Float32BufferAttribute(starPositions,3));
-const stars=new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xffffff,size:.25}));
+starGeometry.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));
+const stars=new THREE.Points(starGeometry,new THREE.PointsMaterial({color:0xffffff,size:.25}));
 scene.add(stars);
 
 // Player
@@ -136,26 +214,24 @@ const player=new THREE.Object3D();
 player.position.set(0,heightAt(0,5)+2,5);
 scene.add(player);
 player.add(camera);
-let yaw=0,pitch=0,vy=0,grounded=false;
+let yaw=0,pitch=0,vy=0,grounded=false,selected="grass",day=0;
 const keys={};
-let selected="grass";
-let day=0;
 
 document.addEventListener("keydown",e=>{
  keys[e.code]=true;
  if(e.code.startsWith("Digit")){
-  const slot=document.querySelectorAll(".slot")[Number(e.code.slice(5))-1];
-  if(slot)slot.click();
+  const s=document.querySelectorAll(".slot")[Number(e.code.slice(5))-1];
+  if(s)s.click();
  }
  if(e.code==="Space"&&grounded){vy=.18;grounded=false;}
 });
 document.addEventListener("keyup",e=>keys[e.code]=false);
 
-document.querySelectorAll(".slot").forEach(slot=>{
- slot.onclick=()=>{
-  selected=slot.dataset.type;
-  document.querySelectorAll(".slot").forEach(s=>s.classList.remove("active"));
-  slot.classList.add("active");
+document.querySelectorAll(".slot").forEach(s=>{
+ s.onclick=()=>{
+  selected=s.dataset.type;
+  document.querySelectorAll(".slot").forEach(b=>b.classList.remove("active"));
+  s.classList.add("active");
  };
 });
 
@@ -192,20 +268,29 @@ renderer.domElement.addEventListener("mousedown",e=>{
 
 function animate(){
  requestAnimationFrame(animate);
-
- // Smooth day and night cycle
  day+=.00012;
- const sunHeight=Math.sin(day);
- const daylight=Math.max(.12,(sunHeight+1)/2);
- const skyColor=new THREE.Color().setHSL(.55,.55,.12+daylight*.42);
- scene.background.copy(skyColor);
- scene.fog.color.copy(skyColor);
+ const daylight=Math.max(.12,(Math.sin(day)+1)/2);
+ const sky=new THREE.Color().setHSL(.56,.55,.12+daylight*.42);
+ scene.background.copy(sky);
+ scene.fog.color.copy(sky);
  sun.intensity=.15+daylight*2.2;
- skyLight.intensity=.35+daylight*1.3;
- sun.position.set(Math.cos(day)*30,sunHeight*35,10);
+ hemi.intensity=.35+daylight*1.3;
+ sun.position.set(Math.cos(day)*30,Math.sin(day)*35,10);
  stars.visible=daylight<.28;
 
- // Movement
+ clouds.forEach(c=>{
+  c.position.x+=.008;
+  if(c.position.x>30)c.position.x=-30;
+ });
+ animals.forEach(a=>{
+  a.phase+=.012;
+  a.group.position.x=a.x+Math.sin(a.phase)*1.5;
+  a.group.position.z=a.z+Math.cos(a.phase)*1.5;
+  a.group.rotation.y=Math.sin(a.phase)*.5;
+ });
+
+ water.position.y=.18+Math.sin(performance.now()*.001)*.025;
+
  const speed=.105;
  const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
  const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
@@ -216,7 +301,6 @@ function animate(){
 
  player.position.x=THREE.MathUtils.clamp(player.position.x,-21,21);
  player.position.z=THREE.MathUtils.clamp(player.position.z,-21,21);
-
  vy-=.007;
  player.position.y+=vy;
  const ground=heightAt(Math.round(player.position.x),Math.round(player.position.z))+1.7;
