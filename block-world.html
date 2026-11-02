@@ -199,7 +199,7 @@ let selected="grass",tool="hand";
 const keys={};
 
 // Inventory counts
-const inventory={grass:0,dirt:0,stone:0,wood:0,leaves:0,sand:0};
+const inventory={grass:0,dirt:0,stone:0,wood:0,leaves:0,sand:0,apple:0};
  // SURVIVAL MODE
 let health = 100;
 let food = 100;
@@ -220,19 +220,19 @@ function updateSurvival(){
  <div style="background:#e9b83e;width:${food}%;height:10px;border-radius:8px"></div></div>
  <button id="eatFood" style="margin-top:8px;padding:6px">🍎 Eat food</button>`;
  document.body.appendChild(box);
- document.getElementById("eatFood").onclick=()=>{
-  if(inventory.wood>0){
-   inventory.wood--;
+document.getElementById("eatFood").onclick=()=>{
+  if(inventory.apple>0){
+   inventory.apple--;
    food=Math.min(100,food+15);
    updateSurvival();
    updateBar();
-   say("Food restored! (Prototype: wood used as test food)");
-  }else say("No test food available!");
+   say("Apple eaten! Food restored.");
+  }else say("No apples available!");
  };
 }
 updateSurvival();
 const tools={axe:false,pickaxe:false,shovel:false};
-const names={grass:"🟩 Grass",dirt:"🟫 Dirt",stone:"⬜ Stone",wood:"🪵 Wood",leaves:"🍃 Leaves",sand:"🟨 Sand"};
+const emojis={grass:"🟩",dirt:"🟫",stone:"⬜",wood:"🪵",leaves:"🍃",sand:"🟨",apple:"🍎"};
 const emojis={grass:"🟩",dirt:"🟫",stone:"⬜",wood:"🪵",leaves:"🍃",sand:"🟨"};
 let panelMode="inventory";
  // FOOD AND HEALTH DRAIN
