@@ -235,6 +235,15 @@ const tools={axe:false,pickaxe:false,shovel:false};
 const names={grass:"🟩 Grass",dirt:"🟫 Dirt",stone:"⬜ Stone",wood:"🪵 Wood",leaves:"🍃 Leaves",sand:"🟨 Sand"};
 const emojis={grass:"🟩",dirt:"🟫",stone:"⬜",wood:"🪵",leaves:"🍃",sand:"🟨"};
 let panelMode="inventory";
+ // FOOD AND HEALTH DRAIN
+setInterval(() => {
+  if (food > 0) {
+    food = Math.max(0, food - 1);
+  } else {
+    health = Math.max(0, health - 2);
+  }
+  updateSurvival();
+}, 10000);
 
 function say(text){
  const el=document.getElementById("message");
