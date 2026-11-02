@@ -271,7 +271,9 @@ function showPanel(mode){
 function renderPanel(){
  const items=document.getElementById("items");
  const craft=document.getElementById("craft");
- items.innerHTML="";craft.innerHTML="";
+ items.innerHTML="";
+ craft.innerHTML="";
+
  if(panelMode==="inventory"){
   Object.keys(inventory).forEach(type=>{
    const d=document.createElement("div");
@@ -279,40 +281,54 @@ function renderPanel(){
    d.textContent=names[type]+": "+inventory[type];
    items.appendChild(d);
   });
+
   Object.keys(tools).forEach(type=>{
    const d=document.createElement("div");
    d.className="item";
    d.textContent=(tools[type]?"✅ ":"🔒 ")+type+" "+(tools[type]?"crafted":"not crafted");
    items.appendChild(d);
   });
+
  }else{
   const recipes=[
    {name:"🪓 Craft Axe",tool:"axe",cost:{wood:3,stone:2}},
    {name:"⛏️ Craft Pickaxe",tool:"pickaxe",cost:{wood:2,stone:3}},
    {name:"🥄 Craft Shovel",tool:"shovel",cost:{wood:2,stone:1}}
   ];
+
   recipes.forEach(r=>{
    const b=document.createElement("button");
    const cost=Object.entries(r.cost).map(([k,v])=>names[k]+" "+v).join(" + ");
    b.textContent=r.name+" ("+cost+")";
+
    b.onclick=()=>{
-    if(tools[r.tool]){say("You already crafted this tool.");return;}
-    if(!Object.entries(r.cost).every(([k,v])=>inventory[k]>=v)){
-     say("Not enough items! Break more blocks.");return;
+    if(tools[r.tool]){
+     say("You already crafted this tool.");
+     return;
     }
+
+    if(!Object.entries(r.cost).every(([k,v])=>inventory[k]>=v)){
+     say("Not enough items! Break more blocks.");
+     return;
+    }
+
     Object.entries(r.cost).forEach(([k,v])=>inventory[k]-=v);
     tools[r.tool]=true;
     say(r.tool+" crafted!");
-    renderPanel();updateBar();
+    renderPanel();
+    updateBar();
    };
+
    craft.appendChild(b);
   });
+
   const info=document.createElement("div");
   info.className="item";
   info.textContent="Recipes use collected wood and stone. Tools are prototype items.";
   craft.appendChild(info);
  }
 }
+
 document.getElementById("inventoryBtn").onclick=()=>showPanel("inventory");
 document.getElementById("craftBtn").onclick=()=>showPanel("craft");
 document.getElementById("close").onclick=()=>document.getElementById("panel").style.display="none";
