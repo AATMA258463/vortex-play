@@ -199,7 +199,8 @@ let selected="grass",tool="hand";
 const keys={};
 
 // Inventory counts
-const inventory={grass:0,dirt:0,stone:0,wood:0,leaves:0,sand:0,apple:0};
+const names={grass:"Grass",dirt:"Dirt",stone:"Stone",wood:"Wood",leaves:"Leaves",sand:"Sand",apple:"Apple"};
+ const inventory={grass:0,dirt:0,stone:0,wood:0,leaves:0,sand:0,apple:0};
  // SURVIVAL MODE
 let health = 100;
 let food = 100;
@@ -272,7 +273,6 @@ function renderPanel(){
  const items=document.getElementById("items");
  const craft=document.getElementById("craft");
  items.innerHTML="";
- items.innerHTML="<div class='item'>Inventory Test Working!</div>";
  craft.innerHTML="";
 
  if(panelMode==="inventory"){
